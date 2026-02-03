@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Option in Zenodo downloader to pull example data from local path
+- Installation note for Intel macOS.
+
+### Changed
+
+- Removed Python version upper bound; now supports Python 3.11-3.14.
 
 ## [0.4.7]
 

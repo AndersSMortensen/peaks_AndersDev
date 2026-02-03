@@ -301,14 +301,14 @@ class SESDataLoader(BaseARPESDataLoader):
                         )
                     dim_new_name[i] = "eV"
                     units["eV"] = "eV"
-                    cls._SES_metadata_key_mappings["analyser_eV_type"] = (
-                        lambda x: "Kinetic"
+                    cls._SES_metadata_key_mappings["analyser_eV_type"] = lambda x: (
+                        "Kinetic"
                     )
                 else:
                     dim_new_name[i] = "eV"
                     units["eV"] = "eV"
-                    cls._SES_metadata_key_mappings["analyser_eV_type"] = (
-                        lambda x: "Binding"
+                    cls._SES_metadata_key_mappings["analyser_eV_type"] = lambda x: (
+                        "Binding"
                     )
                     analysis_warning(
                         "Data energy axis has been loaded as binding energy.",

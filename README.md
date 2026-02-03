@@ -1,8 +1,11 @@
 # peaks
 
-[![git](https://img.shields.io/badge/repo-github-orange)](https://github.com/phrgab/peaks)
-[![docs](https://img.shields.io/badge/docs-research.st--andrews-green?style=flat-square)](https://research.st-andrews.ac.uk/kinggroup/peaks)
-[![Code Style: Ruff (Black-compatible)](https://img.shields.io/badge/code%20style-ruff-black?style=flat-square)](https://docs.astral.sh/ruff/formatter/)
+[![git](https://img.shields.io/badge/repo-github-blue?logo=github)](https://github.com/phrgab/peaks)
+![Latest version on pypi](https://img.shields.io/pypi/v/peaks-arpes?logo=pypi&logoColor=white&color=brightgree)
+![Supported Python versions](https://img.shields.io/pypi/pyversions/peaks-arpes?logo=python&logoColor=white)
+[![docs](https://img.shields.io/badge/docs-research.st--andrews-blueviolet)](https://research.st-andrews.ac.uk/kinggroup/peaks)
+[![Code Style: Ruff (Black-compatible)](https://img.shields.io/badge/code%20style-ruff-black)](https://docs.astral.sh/ruff/formatter/)
+
 
 `peaks`: **P**ython **E**lectron Spectroscopy **A**nalysis by **K**ing Group **S**t Andrews.
 
@@ -31,7 +34,7 @@ Edgar Abarca Morales, Lewis Hart, and Liam Trzaska \
 
 `peaks` is registed on [PyPI](https://pypi.org/project/peaks-arpes/) under the name `peaks-arpes`.
 
-It is recommended to install `peaks` in its own isolated environment. E.g. using conda:
+`peaks` has been tested with Python 3.11 through 3.14. It is recommended to install `peaks` in its own isolated environment. E.g. using conda:
 
 ```bash
 conda create -n peaks python=3.12
@@ -47,6 +50,19 @@ To install optional dependencies, append `\[dep1, dep2, ...\]` to the end of the
 - **ML** - required for the use of the machine learning module;
 - **dev** - optional development dependencies, used for e.g. linting the code and installing pre-commit hooks.
 - **docs** - optional dependencies for building local copies of the documentation. 
+
+:::{tip}
+**Intel mac users:** 
+`peaks` depends on `numba`, which cannot be installed via pip on Intel macOS [since `v0.63.0`](https://github.com/numba/numba/issues/10187) as pre-built wheels for this platform are no longer provided on PyPI. Install `numba` via conda first (or [build from source](https://numba.readthedocs.io/en/stable/user/installing.html#installing-from-source)) before installing `peaks`, e.g.
+
+```bash
+conda create -n peaks python=3.12
+conda activate peaks
+conda install -c conda-forge numba
+pip install peaks-arpes
+```
+::: 
+
 
 ### Installing from source
 
@@ -84,4 +100,4 @@ https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
-peaks also makes extensive use of many other packages - see dependencies in pyproject.toml and their relevant licenses in the source control of those packages. 
+peaks also makes extensive use of many other packages - see dependencies in pyproject.toml and their relevant licenses in the source control of those packages.

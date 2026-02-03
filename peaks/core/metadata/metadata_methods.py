@@ -515,10 +515,9 @@ class MetadataDT:
             else:
                 # Otherwise map over all dataarrays in the dataset
                 ds.map(
-                    lambda da: Metadata._apply_normal_emission(
-                        da, current_reference_data
+                    lambda da: (
+                        Metadata._apply_normal_emission(da, current_reference_data) or da
                     )
-                    or da
                 )
             return ds
 

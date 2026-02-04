@@ -1,8 +1,8 @@
 # peaks
 
 [![git](https://img.shields.io/badge/repo-github-blue?logo=github)](https://github.com/phrgab/peaks)
-![Latest version on pypi](https://img.shields.io/pypi/v/peaks-arpes?logo=pypi&logoColor=white&color=brightgree)
-![Supported Python versions](https://img.shields.io/pypi/pyversions/peaks-arpes?logo=python&logoColor=white)
+[![Latest version on pypi](https://img.shields.io/pypi/v/peaks-arpes?logo=pypi&logoColor=white&color=brightgree)](https://pypi.org/project/peaks-arpes/)
+[![Supported Python versions](https://img.shields.io/pypi/pyversions/peaks-arpes?logo=python&logoColor=white)](https://www.python.org)
 [![docs](https://img.shields.io/badge/docs-research.st--andrews-blueviolet)](https://research.st-andrews.ac.uk/kinggroup/peaks)
 [![Code Style: Ruff (Black-compatible)](https://img.shields.io/badge/code%20style-ruff-black)](https://docs.astral.sh/ruff/formatter/)
 
@@ -29,7 +29,7 @@ Edgar Abarca Morales, Lewis Hart, and Liam Trzaska \
 
 <!-- citation-end -->
 
-<!-- installation-start -->
+<!-- pypi-installation-start -->
 ## Installation
 
 `peaks` is registed on [PyPI](https://pypi.org/project/peaks-arpes/) under the name `peaks-arpes`.
@@ -50,8 +50,9 @@ To install optional dependencies, append `\[dep1, dep2, ...\]` to the end of the
 - **ML** - required for the use of the machine learning module;
 - **dev** - optional development dependencies, used for e.g. linting the code and installing pre-commit hooks.
 - **docs** - optional dependencies for building local copies of the documentation. 
+<!-- pypi-installation-end -->
 
-:::{tip}
+<!-- intel-mac-tip-start -->
 **Intel mac users:** 
 `peaks` depends on `numba`, which cannot be installed via pip on Intel macOS [since `v0.63.0`](https://github.com/numba/numba/issues/10187) as pre-built wheels for this platform are no longer provided on PyPI. Install `numba` via conda first (or [build from source](https://numba.readthedocs.io/en/stable/user/installing.html#installing-from-source)) before installing `peaks`, e.g.
 
@@ -61,9 +62,9 @@ conda activate peaks
 conda install -c conda-forge numba
 pip install peaks-arpes
 ```
-::: 
+<!-- intel-mac-tip-end -->
 
-
+<!-- source-installation-start -->
 ### Installing from source
 
 The latest version of `peaks` can be installed directly from source:
@@ -73,7 +74,7 @@ pip install git+https://github.com/phrgab/peaks.git
 
 
 To install a specific tagged version, append `@<tag>` to the end of the git link where `<tag>` is the tag name.
-<!-- installation-end -->
+<!-- source-installation-end -->
 
 <!-- basic-usage-start -->
 ## Basic Usage

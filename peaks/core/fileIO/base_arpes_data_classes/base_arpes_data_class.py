@@ -11,6 +11,9 @@ from peaks.core.fileIO.base_data_classes.base_photon_source_classes import (
 from peaks.core.fileIO.base_data_classes.base_temperature_class import (
     BaseTemperatureDataLoader,
 )
+from peaks.core.fileIO.base_data_classes.base_optics_class import (
+    BaseOpticsDataLoader,
+)
 from peaks.core.metadata.base_metadata_models import (
     ARPESAnalyserAnglesMetadataModel,
     ARPESAnalyserMetadataModel,
@@ -28,7 +31,7 @@ ureg = pint_xarray.unit_registry
 
 
 class BaseARPESDataLoader(
-    BasePhotonSourceDataLoader, BaseTemperatureDataLoader, BaseManipulatorDataLoader
+    BasePhotonSourceDataLoader, BaseTemperatureDataLoader, BaseManipulatorDataLoader, BaseOpticsDataLoader
 ):
     """Base class for data loaders for ARPES systems. Assume a cryo-manipulator and photon source
 
@@ -50,6 +53,7 @@ class BaseARPESDataLoader(
     BaseDataLoader._load_metadata
     BasePhotonSourceDataLoader
     BaseTemperatureDataLoader
+    BaseOpticsDataLoader
     BaseManipulatorDataLoader
     """
 

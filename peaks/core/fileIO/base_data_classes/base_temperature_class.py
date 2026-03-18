@@ -22,9 +22,11 @@ class BaseTemperatureDataLoader(BaseDataLoader):
 
     # Define class variables
     _loc_name = "Default Temperature"
-    _temperature_attributes = ["sample", "cryostat", "shield", "setpoint"]
+    _temperature_attributes = ["sample", "precooling", "cryostat", "heaterpower", "shield", "setpoint"]
     _temperature_exclude_from_metadata_warn = [
+        "precooling",
         "cryostat",
+        "heaterpower",
         "shield",
         "setpoint",
     ]  # List of attributes to ignore for metadata warnings
@@ -45,7 +47,9 @@ class BaseTemperatureDataLoader(BaseDataLoader):
         # Build and populate the temperature metadata model
         temperature_metadata = TemperatureMetadataModel(
             sample=metadata_dict.get("temperature_sample"),
+            precooling=metadata_dict.get("temperature_precooling"),
             cryostat=metadata_dict.get("temperature_cryostat"),
+            heaterpower=metadata_dict.get("temperature_heaterpower"),
             shield=metadata_dict.get("temperature_shield"),
             setpoint=metadata_dict.get("temperature_setpoint"),
         )

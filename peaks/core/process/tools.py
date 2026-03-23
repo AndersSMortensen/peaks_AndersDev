@@ -554,6 +554,9 @@ def smooth(data, **smoothing_kwargs):
 
     # Update DataArray with smoothed data
     smoothed_data.data = array_sm
+    smoothed_data.data = (
+        array_sm * data.data.units
+    )  # re-apply the units to the smoothed data
 
     # Check that all supplied smoothing_kwargs are used, giving a warning if not (this occurs if an axis does not exist)
     if len(smoothing_kwargs) != 0:

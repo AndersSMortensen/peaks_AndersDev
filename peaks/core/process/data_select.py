@@ -563,7 +563,7 @@ def extract_cut(data, start_point, end_point, num_points=None):
         FM = pks.load('FM.zip')
 
         # Extract cut from (0, 0) to (15, 12) with 100 points
-        cut = FM.extract_dispersion({'theta_par': 0, 'polar': 0}, {'theta_par': 15, 'polar': 12}, num_points=100)
+        cut = FM.extract_cut({'theta_par': 0, 'polar': 0}, {'theta_par': 15, 'polar': 12}, num_points=100)
 
     """
 

@@ -452,7 +452,7 @@ def radial_cuts(data, num_azi=361, num_points=200, radius=2, **centre_kwargs):
 
     """
 
-    angle_dims = list(set(data.dims) - {"eV"})
+    angle_dims = [dim for dim in data.dims if dim != "eV"]
 
     # Check remaining data is 2D
     if len(angle_dims) != 2:

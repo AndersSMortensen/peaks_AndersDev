@@ -41,13 +41,13 @@ Guidelines:
 
 ## Testing
 
-As well as thorougly testing the new feature, all of the existing tutorials (which act as a basic form of codebase test at present) should run without error. To test locally, from the parent directory of `peaks`, run:
+As well as thoroughly testing the new feature, all unit tests should run without errors before a pull request will be merged. To test locally, from the parent directory of `peaks`, run:
 
 ```bash
-bash ./tests/test_tutorials.sh
+pytest
 ```
 
-This will also be run in CI for merge requests, and only passing tests will usually be merged.
+This will also be run in CI for merge requests, and only passing tests will usually be merged. The current test suite covers core functionality with coverage expanding progressively. If your contribution adds new features or fixes bugs, please include corresponding tests where practical.
 
 ## Linting and Formatting
 

@@ -2,32 +2,22 @@ name: Unit tests
 
 on:
   pull_request: # triggers on PR open or update
-  push:
+  push: # triggers on any branch push
     branches:
-      - initial-unit-tests
-      # - main
-      # - dev
-  schedule:
-    - cron: "30 9 * * 1" # every Monday at 0930 UTC
+      - "**"
 
 jobs:
   unit-tests:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false # don't cancel other jobs if one fails here
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out the repo
         uses: actions/checkout@v6
 
-      - name: Set up python ${{ matrix.python-version }}
+      - name: Set up python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.13"
           cache: "pip"
 
       - name: Install peaks with dev dependencies

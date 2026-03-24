@@ -39,6 +39,8 @@ Guidelines:
 - Ensure the [documentation is updated](#documentation).
 - Open a pull request to merge onto the `dev` branch.
 
+(testing)=
+
 ## Testing
 
 As well as thoroughly testing the new feature, all unit tests should run without errors before a pull request will be merged. To test locally, from the parent directory of `peaks`, run:

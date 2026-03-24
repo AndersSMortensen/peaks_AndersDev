@@ -243,6 +243,11 @@ class TestRadialCuts:
         xr.testing.assert_allclose(peak_positions, expected, atol=1e-2)
 
     def test_radial_cuts_azi_0_is_deterministic(self):
+        """azi=0 should always point along the positive dim[0] irrespective of dimension naming.
+        Two dataarrays here are created from the same underlying arc-shaped array but with
+        different dimension orderings. If radial_cuts consistently treats azi=0 as the
+        positive direction of dim[0], both should give the same result.
+        """
         kx = np.linspace(-2, 2, 401)
         ky = np.linspace(-2, 2, 401)
         KX, KY = np.meshgrid(kx, ky)
@@ -251,7 +256,7 @@ class TestRadialCuts:
         mask = (azi >= 45) & (azi <= 135)
         arc_values = circle_values * mask
         da_dim0_is_ky = _simulate_fake_scan(arc_values, dims=("ky", "kx"), x=kx, y=ky)
-        da_dim0_is_kx = _simulate_fake_scan(arc_values.T, dims=("kx", "ky"), x=kx, y=ky)
+        da_dim0_is_kx = _simulate_fake_scan(arc_values, dims=("kx", "ky"), x=kx, y=ky)
         result_ky = da_dim0_is_ky.radial_cuts(radius=1.5, kx=0, ky=0)
         result_kx = da_dim0_is_kx.radial_cuts(radius=1.5, kx=0, ky=0)
         np.testing.assert_allclose(

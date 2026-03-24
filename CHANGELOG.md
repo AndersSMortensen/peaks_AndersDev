@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `core/fitting`: `fit`, `fit_functions`, `models`
   - `core/process`: `data_select`, `differentiate`, `tools`
   - `core/utils`: `interpolation`, `misc`
-- Unit tests added to CI workflow.
+- Unit tests added to CI workflow
 
 ### Fixed
 

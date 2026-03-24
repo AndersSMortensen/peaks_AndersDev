@@ -4,8 +4,9 @@ on:
   pull_request: # triggers on PR open or update
   push:
     branches:
-      - main
-      - dev
+      - initial-unit-tests
+      # - main
+      # - dev
   schedule:
     - cron: "30 9 * * 1" # every Monday at 0930 UTC
 

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import matplotlib
 import numpy as np
 import pint_xarray
@@ -135,6 +137,11 @@ class TestEstimateEF:
 
 
 class TestFitGold:
+    @pytest.fixture(autouse=True)
+    def _suppress_plt_show(self):
+        with patch("peaks.core.fitting.fit.plt.show"):
+            yield
+
     @pytest.mark.parametrize(
         "EF_correction_type, expected",
         [

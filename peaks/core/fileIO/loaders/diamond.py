@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from typing import Optional, Union
 
 import h5py
 import numpy as np
@@ -15,7 +14,6 @@ from peaks.core.fileIO.base_arpes_data_classes.base_arpes_data_class import (
 from peaks.core.fileIO.base_data_classes.base_hdf5_class import BaseHDF5DataLoader
 from peaks.core.fileIO.base_data_classes.base_optics_class import BaseOpticsDataLoader
 from peaks.core.fileIO.loc_registry import register_loader
-from peaks.core.metadata.base_metadata_models import BaseMetadataModel, Quantity
 from peaks.core.options import opts
 from peaks.core.utils.misc import analysis_warning
 

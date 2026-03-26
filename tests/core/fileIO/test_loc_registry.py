@@ -38,4 +38,4 @@ class TestLocsRegistry:
 
     def test_registry_values_are_classes(self):
         for name, loader in LOC_REGISTRY.items():
-            assert isinstance(loader, type)
+            assert isinstance(loader, type), f"{name} is not a class"

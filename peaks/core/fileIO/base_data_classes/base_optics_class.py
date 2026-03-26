@@ -50,7 +50,7 @@ class BaseOpticsDataLoader(BaseDataLoader):
 
     @classmethod
     def _parse_optics_metadata(cls, metadata_dict):
-        """needs docstring"""
+        """Parse metadata specific to the optics data."""
 
         optics_metadata_dict = {}
 

@@ -13,6 +13,7 @@ from peaks.core.fileIO.base_arpes_data_classes.base_arpes_data_class import (
     BaseARPESDataLoader,
 )
 from peaks.core.fileIO.base_data_classes.base_hdf5_class import BaseHDF5DataLoader
+from peaks.core.fileIO.base_data_classes.base_optics_class import BaseOpticsDataLoader
 from peaks.core.fileIO.loc_registry import register_loader
 from peaks.core.metadata.base_metadata_models import BaseMetadataModel, Quantity
 from peaks.core.options import opts
@@ -477,19 +478,8 @@ class I05ARPESLoader(DiamondNXSLoader, BaseARPESDataLoader):
         return da.squeeze()
 
 
-class I05NanoFocussingMetadataModel(BaseMetadataModel):
-    """Model to store metadata for Diamond Light Source Nano-ARPES focussing optics metadata."""
-
-    OSAx: Optional[Union[str, Quantity]] = None
-    OSAy: Optional[Union[str, Quantity]] = None
-    OSAz: Optional[Union[str, Quantity]] = None
-    ZPx: Optional[Union[str, Quantity]] = None
-    ZPy: Optional[Union[str, Quantity]] = None
-    ZPz: Optional[Union[str, Quantity]] = None
-
-
 @register_loader
-class I05NanoARPESLoader(I05ARPESLoader):
+class I05NanoARPESLoader(I05ARPESLoader, BaseOpticsDataLoader):
     _loc_name = "Diamond_I05_Nano-ARPES"
     _loc_description = "Nano-ARPES branch line of I05 beamline at Diamond Light Source"
     _loc_url = "https://www.diamond.ac.uk/Instruments/Structures-and-Surfaces/I05.html"
@@ -543,6 +533,17 @@ class I05NanoARPESLoader(I05ARPESLoader):
         "theta_par": "angles",
         "hv": ["energy", "value"],
         "ana_polar": "analyser_polar_angle",
+    }
+
+    _optics_name_conventions = {
+        "x1": "ZPx",
+        "x2": "ZPy",
+        "x3": "ZPz",
+    }
+    _optics_additional_name_conventions = {
+        "OSA_x1": "OSAx",
+        "OSA_x2": "OSAy",
+        "OSA_x3": "OSAz",
     }
 
     _hdf5_metadata_key_mappings = {
@@ -632,12 +633,12 @@ class I05NanoARPESLoader(I05ARPESLoader):
         ],
         "photon_exit_slit": "entry1/instrument/monochromator/exit_slit_size",
         "timestamp": "entry1/start_time",
-        "focussing_OSAx": "entry1/instrument/order_sorting_aperture/osax",
-        "focussing_OSAy": "entry1/instrument/order_sorting_aperture/osay",
-        "focussing_OSAz": "entry1/instrument/order_sorting_aperture/osaz",
-        "focussing_ZPx": "entry1/instrument/zone_plate/zpx",
-        "focussing_ZPy": "entry1/instrument/zone_plate/zpy",
-        "focussing_ZPz": "entry1/instrument/zone_plate/zpz",
+        "optics_OSAx": "entry1/instrument/order_sorting_aperture/osax",
+        "optics_OSAy": "entry1/instrument/order_sorting_aperture/osay",
+        "optics_OSAz": "entry1/instrument/order_sorting_aperture/osaz",
+        "optics_ZPx": "entry1/instrument/zone_plate/zpx",
+        "optics_ZPy": "entry1/instrument/zone_plate/zpy",
+        "optics_ZPz": "entry1/instrument/zone_plate/zpz",
     }
 
     _data_group_key_resolution_order = ["analyser", "analyser_total"]
@@ -666,20 +667,6 @@ class I05NanoARPESLoader(I05ARPESLoader):
             data = cls.slant_correct(data, kwargs.get("slant_factor", None))
 
         return data
-
-    @classmethod
-    def _parse_optics_metadata(cls, metadata_dict):
-        """Parse the optics metadata from the metadata dictionary"""
-
-        optics_metadata = I05NanoFocussingMetadataModel(
-            OSAx=metadata_dict.get("focussing_OSAx"),
-            OSAy=metadata_dict.get("focussing_OSAy"),
-            OSAz=metadata_dict.get("focussing_OSAz"),
-            ZPx=metadata_dict.get("focussing_ZPx"),
-            ZPy=metadata_dict.get("focussing_ZPy"),
-            ZPz=metadata_dict.get("focussing_ZPz"),
-        )
-        return {"_focussing": optics_metadata}, None
 
     @register_accessor(xr.DataArray)
     @staticmethod

@@ -141,15 +141,16 @@ class TemperatureMetadataModel(BaseMetadataModel):
     shield: Optional[Union[str, Quantity]] = None
     setpoint: Optional[Union[str, Quantity]] = None
 
-#Define the optics metadata model
+
+# Define the optics metadata model
 class OpticsMetadataModel(BaseMetadataModel):
-    """Model to store settings for beam-line optics. 
-    Is able to record the optics position in three axis.
-    If there are more elements to the setup (capillary and zone plate for example)
-    create instances of the class separately for each."""
-    opt_x1: Optional[Union[str, Quantity]] = None
-    opt_x2: Optional[Union[str, Quantity]] = None
-    opt_x3: Optional[Union[str, Quantity]] = None
+    """Model to store optics metadata."""
+
+    model_config = ConfigDict(extra="allow")
+
+    x1: NamedAxisMetadataModel = NamedAxisMetadataModel()
+    x2: NamedAxisMetadataModel = NamedAxisMetadataModel()
+    x3: NamedAxisMetadataModel = NamedAxisMetadataModel()
 
 
 # Define the photon metadata models

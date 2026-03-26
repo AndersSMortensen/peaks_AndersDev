@@ -1,51 +1,86 @@
 from peaks.core.fileIO.base_data_classes.base_data_class import BaseDataLoader
 from peaks.core.metadata.base_metadata_models import OpticsMetadataModel
 
+
 class BaseOpticsDataLoader(BaseDataLoader):
-    """Baseclassfordataloders for systems with nano-focusing optics.
+    """Base class for data loaders for systems with focussing optics.
 
-    Subclasses should define the `_load_optics_metadata` method to return a dictionary of relevant metadata
-    values with keys of the form `temperature_item` where `item` is the names in the `_optics_attributes` list,
-    i.e. is given in :class:`peaks` convention. This method should return values as :class:`pint.Quantity` objects
-    where possible to ensure units are appropriately captured and propagated. Alternatively, the main `_load_metadata`
-    method can be overwritten to return the full metadata dictionary, including manipulator metadata.
+    Provides metadata handling for optical components such as zone plates, order sortign apertures, etc.
+    Designed to be used as a mixin alongside other base loader classes, e.g. ``BaseARPESDataLoader``.
 
-    Subclasses should add any additional temperature attributes via the `_add_temperature_attributes` class variable,
-     providing a list of additional attributes.
+    Subclasses should define class variables describing their motor naming conventions:
+
+    - ``_optics_name_conventions``: a dictionary mapping the three primary axes ``x1``, ``x2`` and ``x3`` to
+      the local motor names used in the metadata, e.g. ``ZPx``, ``ZPy``, ``ZPz``.
+    - ``_optics_additional_name_conventions``: (optional) a dictionary mapping any extra axes (e.g. coarse/fine splits)
+      to their local motor names, e.g. ``OSA_x2`` --> ``OSAy``.
+
+    The class provides a ``_parse_optics_metadata`` method that reads motor positions from the metadata dictionary
+    and populates the model. ``_parse_optics_metadata`` should also be added to the ``_metadata_parsers`` list in subclasses.
+
+    Examples
+    --------
+    See :class:`peaks.core.fileIO.loaders.diamond.I05NanoARPESLoader` for a working example using zone plate axes
+    as the primary optics and order sorting aperture axes as additional optics.
 
     See Also
     --------
-    BaseDataLoader
-    BaseDataLoader._load_metadata
+    :class:`peaks.core.fileIO.base_data_classes.base_data_class.BaseDataLoader`
     """
 
-    #Define class variables
+    # Define class variables
     _loc_name = "Default Optics"
-    _optics_attributes = ["opt_x1","opt_x2","opt_x3"]
-    _metadata_parsers = [
-        "_parse_optics_metadata"
-    ]
+    _optics_axes = ["x1", "x2", "x3"]
+    _optics_name_conventions = {}
+    _optics_additional_name_conventions = {}
+    _desired_dim_order = ["x3", "x2", "x1"]
+    _optics_exclude_from_metadata_warn = []
+    _metadata_parsers = ["_parse_optics_metadata"]
 
-    #Properties to access class variables
+    # Properties to access class variables
     @property
-    def tempetrature_attributes(self):
-        "Return the optics attributes."
-        return self._optics_attributes
-    
+    def optics_axes(self):
+        """Return the optics axes."""
+        return self._optics_axes
+
+    @property
+    def optics_name_conventions(self):
+        """Return the `peaks` --> local optics axis name mapping."""
+        return self._optics_name_conventions
+
     @classmethod
     def _parse_optics_metadata(cls, metadata_dict):
-        """Parse metadataspecific to the optics data."""
+        """needs docstring"""
 
-        #Build and populate the optics metadata model.
-        optics_metadata = OpticsMetadataModel(
-            opt_x1=metadata_dict.get("optics_opt_x1"),
-            opt_x2=metadata_dict.get("optics_opt_x1"),
-            opt_x3=metadata_dict.get("optics_opt_x3"),
-        )
+        optics_metadata_dict = {}
 
-        metadata_to_warn_if_missing = (
-            f"optics_{attribute}"
-            for attribute in cls._optics_attributes
-        )
+        # Extract the primary axes metadata and parse in a form for passing to the model
+        for axis in cls._optics_axes:
+            local_motor = cls._optics_name_conventions.get(axis, None)
+            optics_metadata_dict[axis] = {
+                "local_name": local_motor,
+                "value": metadata_dict.get(f"optics_{local_motor}"),
+            }
 
-        return {"_optics":optics_metadata}, metadata_to_warn_if_missing
+        # Extract any additional axes metadata
+        for axis, local_motor in cls._optics_additional_name_conventions.items():
+            optics_metadata_dict[axis] = {
+                "local_name": local_motor,
+                "value": metadata_dict.get(f"optics_{local_motor}"),
+            }
+
+        # Populate the metadata model
+        optics_metadata = OpticsMetadataModel(**optics_metadata_dict)
+
+        metadata_to_warn_if_missing = [
+            f"optics_{cls._optics_name_conventions.get(axis, None)}"
+            for axis in cls._optics_axes
+            if axis not in cls._optics_exclude_from_metadata_warn
+        ] + [
+            f"optics_{local_motor}"
+            for axis, local_motor in cls._optics_additional_name_conventions.items()
+            if axis not in cls._optics_exclude_from_metadata_warn
+        ]
+
+        # Return the model, and a list of any metadata that should be warned if missing
+        return {"_optics": optics_metadata}, metadata_to_warn_if_missing

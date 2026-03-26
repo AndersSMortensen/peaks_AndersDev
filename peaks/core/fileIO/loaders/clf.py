@@ -67,6 +67,8 @@ class ArtemisPhoibos(BaseARPESDataLoader, BasePumpProbeClass):
         "cryostat",
         "setpoint",
         "shield",
+        "precooling_stage",
+        "heater_power",
     ]
 
     @classmethod

@@ -135,9 +135,9 @@ class TemperatureMetadataModel(BaseMetadataModel):
     """Model to store temperature metadata."""
 
     sample: Optional[Union[str, Quantity]] = None
-    precooling: Optional[Union[str, Quantity]] = None
+    precooling_stage: Optional[Union[str, Quantity]] = None
     cryostat: Optional[Union[str, Quantity]] = None
-    heaterpower: Optional[Union[str, Quantity]] = None
+    heater_power: Optional[Union[str, Quantity]] = None
     shield: Optional[Union[str, Quantity]] = None
     setpoint: Optional[Union[str, Quantity]] = None
 

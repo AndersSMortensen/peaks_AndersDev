@@ -59,14 +59,14 @@ class BaseOpticsDataLoader(BaseDataLoader):
             local_motor = cls._optics_name_conventions.get(axis, None)
             optics_metadata_dict[axis] = {
                 "local_name": local_motor,
-                "value": metadata_dict.get(f"optics_{local_motor}"),
+                "value": metadata_dict.get(f"optics_{axis}"),
             }
 
         # Extract any additional axes metadata
         for axis, local_motor in cls._optics_additional_name_conventions.items():
             optics_metadata_dict[axis] = {
                 "local_name": local_motor,
-                "value": metadata_dict.get(f"optics_{local_motor}"),
+                "value": metadata_dict.get(f"optics_{axis}"),
             }
 
         # Populate the metadata model

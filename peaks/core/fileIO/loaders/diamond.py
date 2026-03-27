@@ -251,6 +251,7 @@ class I05ARPESLoader(DiamondNXSLoader, BaseARPESDataLoader):
         "temperature_cryostat": "entry1/sample/cryostat_temperature",
         "temperature_shield": "entry1/sample/shield_temperature",
         "temperature_setpoint": "entry1/sample/temperature_demand",
+        "temperature_heater_power": "entry1/sample/heater_percent",
         "photon_hv": "entry1/instrument/monochromator/energy",
         "photon_polarisation": [
             "entry1/instrument/insertion_device/beam/final_polarisation_label",
@@ -258,6 +259,10 @@ class I05ARPESLoader(DiamondNXSLoader, BaseARPESDataLoader):
         ],
         "photon_exit_slit": "entry1/instrument/monochromator/exit_slit_size",
         "timestamp": "entry1/start_time",
+    }
+
+    _hdf5_metadata_fixed_units = {
+        "entry1/sample/heater_percent": "%",
     }
 
     _data_group_key_resolution_order = ["analyser"]
@@ -624,6 +629,7 @@ class I05NanoARPESLoader(I05ARPESLoader, BaseOpticsDataLoader):
         "temperature_cryostat": "entry1/sample/cryostat_temperature",
         "temperature_shield": "entry1/sample/shield_temperature",
         "temperature_setpoint": "entry1/sample/temperature_demand",
+        "temperature_heater_power": "/entry1/sample/heater_percent",
         "photon_hv": "entry1/instrument/monochromator/energy",
         "photon_polarisation": [
             "entry1/instrument/insertion_device/beam/final_polarisation_label",
@@ -631,12 +637,16 @@ class I05NanoARPESLoader(I05ARPESLoader, BaseOpticsDataLoader):
         ],
         "photon_exit_slit": "entry1/instrument/monochromator/exit_slit_size",
         "timestamp": "entry1/start_time",
-        "optics_OSAx": "entry1/instrument/order_sorting_aperture/osax",
-        "optics_OSAy": "entry1/instrument/order_sorting_aperture/osay",
-        "optics_OSAz": "entry1/instrument/order_sorting_aperture/osaz",
-        "optics_ZPx": "entry1/instrument/zone_plate/zpx",
-        "optics_ZPy": "entry1/instrument/zone_plate/zpy",
-        "optics_ZPz": "entry1/instrument/zone_plate/zpz",
+        "optics_OSA_x1": "entry1/instrument/order_sorting_aperture/osax",
+        "optics_OSA_x2": "entry1/instrument/order_sorting_aperture/osay",
+        "optics_OSA_x3": "entry1/instrument/order_sorting_aperture/osaz",
+        "optics_x1": "entry1/instrument/zone_plate/zpx",
+        "optics_x2": "entry1/instrument/zone_plate/zpy",
+        "optics_x3": "entry1/instrument/zone_plate/zpz",
+    }
+
+    _hdf5_metadata_fixed_units = {
+        "entry1/sample/heater_percent": "%",
     }
 
     _data_group_key_resolution_order = ["analyser", "analyser_total"]

@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit tests added to CI workflow ([PR#10](https://github.com/phrgab/peaks/pull/10))
 - `BaseOpticsDataLoader` class providing metadata handling for optical components
 - `precooling_stage` and `heater_power` entries in `BaseTemperatureDataLoader`
+- `heater_power` now in the metadata for data collected at I05, Diamond
 
 ### Fixed
 

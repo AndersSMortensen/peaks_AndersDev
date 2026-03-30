@@ -629,7 +629,7 @@ class I05NanoARPESLoader(I05ARPESLoader, BaseOpticsDataLoader):
         "temperature_cryostat": "entry1/sample/cryostat_temperature",
         "temperature_shield": "entry1/sample/shield_temperature",
         "temperature_setpoint": "entry1/sample/temperature_demand",
-        "temperature_heater_power": "/entry1/sample/heater_percent",
+        "temperature_heater_power": "entry1/sample/heater_percent",
         "photon_hv": "entry1/instrument/monochromator/energy",
         "photon_polarisation": [
             "entry1/instrument/insertion_device/beam/final_polarisation_label",

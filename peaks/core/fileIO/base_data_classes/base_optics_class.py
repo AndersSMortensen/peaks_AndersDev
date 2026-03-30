@@ -73,11 +73,11 @@ class BaseOpticsDataLoader(BaseDataLoader):
         optics_metadata = OpticsMetadataModel(**optics_metadata_dict)
 
         metadata_to_warn_if_missing = [
-            f"optics_{cls._optics_name_conventions.get(axis, None)}"
+            f"optics_{axis}"
             for axis in cls._optics_axes
             if axis not in cls._optics_exclude_from_metadata_warn
         ] + [
-            f"optics_{local_motor}"
+            f"optics_{axis}"
             for axis, local_motor in cls._optics_additional_name_conventions.items()
             if axis not in cls._optics_exclude_from_metadata_warn
         ]

@@ -3,7 +3,7 @@ from typing import Optional, Union
 import numpy as np
 import pint
 import pint_xarray
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic_core import core_schema
 
 # Define the appropriate unit registry
@@ -145,6 +145,10 @@ class TemperatureMetadataModel(BaseMetadataModel):
 # Define the optics metadata model
 class OpticsMetadataModel(BaseMetadataModel):
     """Model to store optics metadata."""
+
+    __pydantic_extra__: dict[str, NamedAxisMetadataModel] = Field(
+        init=False
+    )  # enforce extra fields to be of type NamedAxisMetadataModel for serialisation
 
     model_config = ConfigDict(extra="allow")
 

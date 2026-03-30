@@ -5,26 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.10.dev]
+## [0.5.0.dev]
 
 ### Added
 
-- Initial unit test suite covering core processing pipeline:
+- Initial unit test suite covering core processing pipeline ([PR#10](https://github.com/phrgab/peaks/pull/10)):
   - `core/fileIO`: `data_loading`, `loc_registry`
   - `core/fitting`: `fit`, `fit_functions`, `models`
   - `core/process`: `data_select`, `differentiate`, `tools`
   - `core/utils`: `interpolation`, `misc`
-- Unit tests added to CI workflow
+- Unit tests added to CI workflow ([PR#10](https://github.com/phrgab/peaks/pull/10))
+- `BaseOpticsDataLoader` class providing metadata handling for optical components
+- `precooling_stage` and `heater_power` entries in `BaseTemperatureDataLoader`
+- `heater_power` now in the metadata for data collected at I05, Diamond
 
 ### Fixed
 
-- `.smooth` and `.curvature` now preserve pint units during analysis
-- Non-deterministic azimuthal origin across python sessions in `radial_cuts`
+- `.smooth` and `.curvature` now preserve pint units during analysis ([PR#10](https://github.com/phrgab/peaks/pull/10))
+- Non-deterministic azimuthal origin across python sessions in `radial_cuts` ([PR#10](https://github.com/phrgab/peaks/pull/10))
 - Stale docstrings updated
+
+### Changed
+
+- `I05NanoARPESLoader` optics metadata now uses `BaseOpticsDataLoader` instead of the bespoke `I05NanoFocussingMetadataModel`
+- Optics metadata stored under `_optics` attribute (previously `_focussing`)
+
+:::{attention}
+**For Diamond I05-nano data:** As a result, any files containing `I05NanoFocussingMetadataModel` previously saved by `peaks` using `.save` will not reload properly; please re-save from the original `.nxs` files.
+:::
 
 ### Removed
 
-- `core/utils/consts.py` deprecated as replaced by `scipy.constants`
+- `core/utils/consts.py` deprecated as replaced by `scipy.constants` ([PR#10](https://github.com/phrgab/peaks/pull/10))
+- `I05NanoFocussingMetadataModel` as replaced by `OpticsMetadataModel`
 
 ## [0.4.9] - 2026-03-06
 

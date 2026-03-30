@@ -135,9 +135,22 @@ class TemperatureMetadataModel(BaseMetadataModel):
     """Model to store temperature metadata."""
 
     sample: Optional[Union[str, Quantity]] = None
+    precooling_stage: Optional[Union[str, Quantity]] = None
     cryostat: Optional[Union[str, Quantity]] = None
+    heater_power: Optional[Union[str, Quantity]] = None
     shield: Optional[Union[str, Quantity]] = None
     setpoint: Optional[Union[str, Quantity]] = None
+
+
+# Define the optics metadata model
+class OpticsMetadataModel(BaseMetadataModel):
+    """Model to store optics metadata."""
+
+    model_config = ConfigDict(extra="allow")
+
+    x1: NamedAxisMetadataModel = NamedAxisMetadataModel()
+    x2: NamedAxisMetadataModel = NamedAxisMetadataModel()
+    x3: NamedAxisMetadataModel = NamedAxisMetadataModel()
 
 
 # Define the photon metadata models

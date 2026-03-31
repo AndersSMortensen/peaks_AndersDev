@@ -414,10 +414,10 @@ def radial_cuts(data, num_azi=361, num_points=200, radius=2, **centre_kwargs):
     data : xarray.DataArray
         Data to extract radial cuts from.
 
-    num_azi : float, optional
+    num_azi : int, optional
         Number of evenly spaced azi values between 0 and 360 degrees to take radial cuts. Defaults to 361.
 
-    num_points : float, optional
+    num_points : int, optional
         Number of evenly spaced points to sample along a cut. Defaults to 200.
 
     radius : float, optional

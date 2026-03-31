@@ -21,7 +21,7 @@ functions and as accessor methods (e.g. `data.smooth(...)`).
 
 ### load
 
-- description: Load one or more ARPES data files into an `xr.DataArray` (single file) or `xr.DataTree` (multiple files). Supports `.ibw`, `.nxs`, `.zip`, `.nc`, `.zarr`, and other beamline formats. Metadata is parsed automatically.
+- description: Load one or more ARPES data files into an `xr.DataArray` (single file) or `xr.DataTree` (multiple files). Supports `.ibw`, `.nxs`, `.zip`, `.krx`, `.xy`, `.nc`, `.zarr`, and other beamline formats. Metadata is parsed automatically.
 - function: peaks.core.fileIO.data_loading:load
 - parameters:
   - fpath: str or list (required) — file path(s) to load
@@ -138,7 +138,7 @@ functions and as accessor methods (e.g. `data.smooth(...)`).
   - kx: slice (optional) — kx range for the output
   - ky: slice (optional) — ky range for the output
   - kz: slice (optional) — kz range for hν scans
-  - return*kz_scan_in_hv: bool (optional, default=False) — return hν-scan data as (hv, eV, k*∥) instead of (kz, eV, k_∥)
+  - return_kz_scan_in_hv: bool (optional, default=False) — return hν-scan data as (hv, eV, k_par) not (kz, eV, k_par)
   - quiet: bool (optional, default=False) — suppress progress bar and warnings
 - returns: xr.DataArray in k-space (k_par/kx/ky replaces theta_par; kz replaces hv for hν scans)
 - when_to_use: Band mapping, Fermi surface mapping, kz dispersion; any analysis requiring momentum coordinates
@@ -284,7 +284,7 @@ functions and as accessor methods (e.g. `data.smooth(...)`).
 
 - description: Shortcut for double differentiation along the energy (eV) axis. Enhances band features and suppresses slowly varying background.
 - function: xr.DataArray accessor .d2E()
-- returns: xr.DataArray with d²I/dE² values
+- returns: xr.DataArray with d^2I/dE^2 values
 - when_to_use: Band structure visualisation. Apply AFTER smoothing and LAST in a processing chain — destroys quantitative intensity.
 - addresses: feature_visibility
 - effects: enhances_features, destroys_intensity
@@ -296,7 +296,7 @@ functions and as accessor methods (e.g. `data.smooth(...)`).
 
 - description: Shortcut for double differentiation along the momentum (or angle) dimension. Works whether data is in angle or k-space.
 - function: xr.DataArray accessor .d2k()
-- returns: xr.DataArray with d²I/dk² values
+- returns: xr.DataArray with d^2I/dk^2 values
 - when_to_use: Enhancing features along the momentum direction; complement to d2E
 - addresses: feature_visibility
 - effects: enhances_features, destroys_intensity
@@ -308,7 +308,7 @@ functions and as accessor methods (e.g. `data.smooth(...)`).
 
 - description: Shortcut for sequential differentiation: first along eV, then along the momentum/angle dimension.
 - function: xr.DataArray accessor .dEdk()
-- returns: xr.DataArray with d²I/dEdk values
+- returns: xr.DataArray with d^2I/dEdk values
 - when_to_use: Mixed derivative enhancement; highlights features that vary in both energy and momentum
 - addresses: feature_visibility
 - effects: enhances_features, destroys_intensity
@@ -320,7 +320,7 @@ functions and as accessor methods (e.g. `data.smooth(...)`).
 
 - description: Shortcut for sequential differentiation: first along the momentum/angle dimension, then along eV.
 - function: xr.DataArray accessor .dkdE()
-- returns: xr.DataArray with d²I/dkdE values
+- returns: xr.DataArray with d^2I/dkdE values
 - when_to_use: Mixed derivative enhancement; order-reversed complement to dEdk
 - addresses: feature_visibility
 - effects: enhances_features, destroys_intensity
@@ -410,7 +410,7 @@ functions and as accessor methods (e.g. `data.smooth(...)`).
 - function: xr.DataArray accessor .rotate()
 - parameters:
   - rotation: float (required) — rotation angle in degrees (anticlockwise)
-  - \*\*centre_kwargs: float — centre of rotation per axis, e.g. kx=0, ky=0; defaults to data midpoint
+  - \*\*centre_kwargs: float — centre of rotation per axis, e.g. kx=0, ky=0; defaults to (0, 0)
 - returns: xr.DataArray — rotated data on the original coordinate grid
 - when_to_use: Correcting angular misalignment in Fermi surface maps; aligning crystal axes with k-space axes
 - addresses: misalignment
@@ -428,7 +428,7 @@ functions and as accessor methods (e.g. `data.smooth(...)`).
   - height: float (optional, default=0.1) — fraction of total height to protect as the central low-frequency region
   - cutoff: float (optional, default=4) — intensity threshold as a multiple of the FFT mean for spike removal
 - returns: xr.DataArray — data with grid artefact removed
-- when_to_use: nanoARPES or µ-ARPES data from instruments with a physical mesh; before spatial or spectral analysis
+- when_to_use: data from instruments with a physical mesh; before spatial or spectral analysis
 - addresses: grid_artefact
 - effects: removes_artefact
 - family: artefact_removal
@@ -655,8 +655,8 @@ functions and as accessor methods (e.g. `data.smooth(...)`).
 - description: Extract an arbitrary straight-line cut through 2D data between two specified points in coordinate space.
 - function: xr.DataArray accessor .extract_cut()
 - parameters:
-  - start_point: tuple (required) — (coord1, coord2) of the cut start in data coordinate values
-  - end_point: tuple (required) — (coord1, coord2) of the cut end in data coordinate values
+  - start_point: dict (required) — {'axis1_key': coord1_value, 'axis2_key': coord2_value} of the cut start in data coordinate values, e.g. {'kx': 0.5, 'ky': -0.3}
+  - end_point: dict (required) — {'axis1_key': coord1_value, 'axis2_key': coord2_value} of the cut end in data coordinate values, e.g. {'kx': 0.2, 'ky': 0.3}
   - num_points: int (optional, default=None) — number of points along the cut; defaults to the data resolution
 - returns: xr.DataArray — 1D cut with a path-length coordinate
 - when_to_use: Extracting off-axis cuts in Fermi surface maps; kz–kx or kz–ky cuts through 3D data
@@ -671,9 +671,9 @@ functions and as accessor methods (e.g. `data.smooth(...)`).
 - description: Mask a region of interest (ROI) defined by a polygon path, returning the masked data and optionally its integrated intensity within the ROI.
 - function: xr.DataArray accessor .mask_data()
 - parameters:
-  - ROI: list of tuples (required) — vertices of the polygonal ROI in coordinate space, e.g. [(kx0,ky0), (kx1,ky1), ...]
-  - return_integrated: bool (optional, default=True) — also return the integrated intensity within the ROI
-- returns: xr.DataArray (masked data) or tuple (masked_data, integrated_intensity)
+  - ROI: dict (required) — vertices of the polygonal ROI in coordinate space, e.g. {'theta_par': [-8, -5.5, -3.1, -5.6], 'eV': [95.45, 95.45, 95.77, 95.77]}
+  - return_integrated: bool (optional, default=True) — if True, take the mean over the ROI dimensions; if False, return the masked data
+- returns: xr.DataArray (masked data or masked-then-averaged data if return_integrated is True)
 - when_to_use: Selecting specific Brillouin zone regions for analysis; excluding spurious regions from fitting
 - addresses: region_selection
 - effects: selects_region
@@ -790,14 +790,14 @@ Functions in `peaks.bz` for computing and plotting Brillouin zones and high-symm
 
 ### sym_points
 
-- description: Return a pandas DataFrame of the high-symmetry k-points for the given crystal structure or lattice, in Å⁻¹. Optionally compute the corresponding angle-along-slit for a given photon energy, useful for locating high-symmetry points in raw angle-space data.
+- description: Return a pandas DataFrame of the high-symmetry k-points for the given crystal structure or lattice, in Å^-1. Optionally compute the corresponding angle-along-slit for a given photon energy, useful for locating high-symmetry points in raw angle-space data.
 - function: peaks.bz.utils:sym_points
 - parameters:
   - structure_or_lattice: ase.Atoms or ase.lattice.BravaisLattice (required) — crystal structure or Bravais lattice
   - surface: tuple, list, or np.ndarray (optional, default=None) — Miller indices (h, k, l) for a surface BZ; None gives bulk points
   - hv: float (optional, default=None) — photon energy in eV; if given, adds a column with the angle-along-slit for each k-point (assumes 4.5 eV work function)
-- returns: pandas.DataFrame with columns kx, ky, kz, |k|, and optionally angle-along-slit
-- when_to_use: Identifying the positions of Γ, X, M, K etc. in Å⁻¹ for k-conversion validation; finding the expected slit angle for a high-symmetry point at a given photon energy before the measurement; annotating Fermi surface maps
+- returns: pandas.DataFrame with columns k_x, k_y, k_z, |k|, and optionally angle-along-slit
+- when_to_use: Identifying the positions of Γ, X, M, K etc. in Å^-1 for k-conversion validation; finding the expected slit angle for a high-symmetry point at a given photon energy before the measurement; annotating Fermi surface maps
 - family: structure
 - strategy: symmetry_points
 - cost: low

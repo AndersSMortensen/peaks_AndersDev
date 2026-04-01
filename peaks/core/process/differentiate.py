@@ -354,7 +354,7 @@ def curvature(data, **parameter_kwargs):
 
 
 def min_gradient(data, **smoothing_kwargs):
-    """Perform minimum gradient analysis of data, using Gaussian filtering (see Rev. Sci. Instrum 88 (2017) 07390 for
+    """Perform minimum gradient analysis of data, using Gaussian filtering (see Rev. Sci. Instrum 88 (2017) 073903 for
     analysis procedure).
 
     Parameters

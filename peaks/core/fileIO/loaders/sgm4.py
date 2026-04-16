@@ -70,6 +70,7 @@ class SGM4NanoARPESLoader(
         "deflector_perp": ureg.deg,
         "deflector_parallel": ureg.deg,
         "Loop": ureg.count,
+        "hv": ureg.electron_volt,
     }
 
     _manipulator_axes = ["polar", "tilt", "azi", "x1", "x2", "x3", "defocus"]
@@ -94,7 +95,7 @@ class SGM4NanoARPESLoader(
         "deflector_parallel": "ShiftY",
         # "eV": ["energies", "kinetic_energy_center"],
         "theta_par": "ordinate_range",
-        # "hv": ["energy", "value"],
+        "hv": "hv",
     }
 
     _optics_name_conventions = {
@@ -106,27 +107,6 @@ class SGM4NanoARPESLoader(
     _analyser_sign_conventions = {
         # HR-branch
         "polar": -1,
-    }
-
-    _hdf5_metadata_key_mappings = {
-        "scan_command": "Entry/Data/Command",
-        "manipulator_polar": "Entry/Instrument/Positioner/SamPolar",
-        "manipulator_tilt": "Entry/Instrument/Positioner/SamTilt",
-        "manipulator_azi": "Entry/Instrument/Positioner/SamAzi",
-        "manipulator_x1": "Entry/Instrument/Positioner/FSamX",
-        "manipulator_x2": "Entry/Instrument/Positioner/FSamY",
-        "manipulator_x3": "Entry/Instrument/Positioner/FSamZ",
-        "temperature_sample": "Entry/Instrument/Temperature/Sample Stage",
-        "temperature_precooling": "Entry/Instrument/Temperature/Stinger",
-        "temperature_cryostat": "Entry/Instrument/Temperature/ColdHead",
-        "temperature_heaterpower": "Entry/Instrument/Temperature/Heater Power",
-        "optics_x1": "Entry/Instrument/Positioner/CapX",
-        "optics_x2": "Entry/Instrument/Positioner/CapY",
-        "optics_x3": "Entry/Instrument/Positioner/CapZ",
-        "analyser_model": "FIXED_VALUE:Phoibos 150 SAL",
-        "analyser_PE": "/Entry/Instrument/Detector/Info",
-        "photon_hv": "/Entry/Instrument/Monochromator/Photon Energy",
-        "photon_exit_slit": "/Entry/Instrument/Monochromator/Exit Slit",
     }
 
     _metadata_parsers = [
@@ -158,6 +138,16 @@ class SGM4NanoARPESLoader(
             scandetails = h5file["/Entry/Data/ScanDetails/"]
             # Determine whether data is a knife-edge, or ordinary scan.
             if "FastAxis_start" in list(scandetails.keys()):
+                # Ensure the naming conventions are correct.
+                cls._manipulator_name_conventions = {
+                    "polar": "SamPolar",
+                    "tilt": "SamTilt",
+                    "azi": "SamAzi",
+                    "x1": "FSamX",
+                    "x2": "FSamY",
+                    "x3": "FSamZ",
+                    "defocus": "CapZ",
+                }
                 # Load Energy and k-axis:
                 NFast = len(scandetails["FastAxis_names"])
                 Fastlen = scandetails["FastAxis_length"][()]
@@ -217,14 +207,16 @@ class SGM4NanoARPESLoader(
                 for kn, a in zip(dimnames, axis, strict=True):
                     coords[kn] = a
                 dsetxr = xr.DataArray(dset, dims=dimnames, coords=coords)
+                # Adjust naming conventions if it is an hv scan
+                if "LEG" in dimnames:
+                    cls._analyser_name_conventions["hv"] = "LEG"
+                elif "MEG" in dimnames:
+                    cls._analyser_name_conventions["hv"] = "MEG"
+                elif "HEG" in dimnames:
+                    cls._analyser_name_conventions["hv"] = "HEG"
                 dsetxr = dsetxr.rename(
                     {"Kinetic Energy": "eV", "OrdinateRange": "theta_par"}
                 )
-                # Hot fix for unaccounted for name convention in knife-edge scan.
-                # Will find a more long term solution.
-                dsetxr.rename({v: "FSamZ" for v in dsetxr.dims if v == "SamZ"})
-                dsetxr.rename({v: "FSamY" for v in dsetxr.dims if v == "SamY"})
-                dsetxr.rename({v: "FSamX" for v in dsetxr.dims if v == "SamX"})
                 dsetxr = dsetxr.rename(
                     {
                         v: k
@@ -245,6 +237,17 @@ class SGM4NanoARPESLoader(
                 for coord in dsetxr.coords:
                     dsetxr.coords[coord].attrs["units"] = cls._unitdict[coord]
 
+                # If an hv scan, add the KE_delta coord:
+                if "hv" in dsetxr.dims:
+                    coords_to_apply = {
+                        dim: dsetxr.coords.get(dim)
+                        for dim in dsetxr.dims
+                        if dim != "dummy"
+                    }
+                    coord = coords_to_apply["hv"]
+                    coords_to_apply["KE_delta"] = coord[:] - coord[0]
+                    dsetxr = dsetxr.assign_coords(coords_to_apply)
+
                 # Correcting work function.
                 dsetxr.coords["eV"] = dsetxr.coords["eV"] - cls._analyser_WF.magnitude
 
@@ -254,6 +257,16 @@ class SGM4NanoARPESLoader(
                         dsetxr = dsetxr.sum("Loop")
 
             else:
+                # Change name conventions temporarily.
+                cls._manipulator_name_conventions = {
+                    "polar": "SamPolar",
+                    "tilt": "SamTilt",
+                    "azi": "SamAzi",
+                    "x1": "SamX",
+                    "x2": "SamY",
+                    "x3": "SamZ",
+                    "defocus": "CapZ",
+                }
                 # Load remaining axis:
                 NSlow = len(scandetails["SlowAxis_names"])
                 Slowlen = scandetails["SlowAxis_length"][()]
@@ -309,22 +322,47 @@ class SGM4NanoARPESLoader(
                 dsetxr = dsetxr.pint.quantify({dsetxr.name: ureg.count / ureg.s})
                 for coord in dsetxr.coords:
                     dsetxr.coords[coord].attrs["units"] = cls._unitdict[coord]
-                # dsetxr = dsetxr.pint.quantify()
 
             return dsetxr.squeeze()
 
     @classmethod
     def _load_metadata(cls, fpath):
         with h5py.File(fpath, "r") as f:
+            # Necessary to destinguish knifeedge and ordinary scans.
+            scandetails = f["/Entry/Data/ScanDetails/"]
+            knifeedgescanflag = "FastAxis_start" not in list(scandetails.keys())
+            if knifeedgescanflag:
+                # During knife edge measurements, the main manipulator
+                # axis are the "Real" SamX, SamY and SamZ axis, rather than the
+                # "Fake" FSamX, FSamY and FSamZ used in ordinary measurements.
+                # The naming conventions are adjusted accordingly here.
+                cls._manipulator_name_conventions = {
+                    "polar": "SamPolar",
+                    "tilt": "SamTilt",
+                    "azi": "SamAzi",
+                    "x1": "SamX",
+                    "x2": "SamY",
+                    "x3": "SamZ",
+                    "defocus": "CapZ",
+                }
+            else:
+                cls._manipulator_name_conventions = {
+                    "polar": "SamPolar",
+                    "tilt": "SamTilt",
+                    "azi": "SamAzi",
+                    "x1": "FSamX",
+                    "x2": "FSamY",
+                    "x3": "FSamZ",
+                    "defocus": "CapZ",
+                }
+
             # Decode info entry:
             if "/Entry/Instrument/Detector/Info" in f:
                 infostring = f["/Entry/Instrument/Detector/Info"][()].decode()
                 infolist = infostring.split("\r\n")
                 Ekinstart = float(infolist[0].replace("Kinetic Start Energy: ", ""))
                 Ekinstop = float(infolist[1].replace("Kinetic End Energy: ", ""))
-                Ekin = (
-                    (Ekinstart + Ekinstop) / 2 * ureg.eV
-                )  # None#np.array([Ekinstart,Ekinstop])#
+                Ekin = (Ekinstart + Ekinstop) / 2 * ureg.eV
                 Sweeps = int(infolist[2].replace("Samples: ", ""))
                 Estep = float(infolist[3].replace("Step Width: ", "")) * ureg.eV
                 Epass = float(infolist[4].replace("Pass Energy: ", "")) * ureg.eV
@@ -421,41 +459,81 @@ class SGM4NanoARPESLoader(
                 SamAzi = None
 
             # Get Sam x,y,z:
-
-            if "Entry/Instrument/Positioner/FSamX" in f:
-                FSamX = (
-                    np.array(
-                        [
-                            min(f["Entry/Instrument/Positioner/FSamX"][()]),
-                            max(f["Entry/Instrument/Positioner/FSamX"][()]),
-                        ]
+            if ("Entry/Instrument/Positioner/FSamX" in f) or (
+                "Entry/Instrument/Positioner/SamX" in f
+            ):
+                if knifeedgescanflag:
+                    FSamX = (
+                        np.array(
+                            [
+                                min(f["Entry/Instrument/Positioner/SamX"][()]),
+                                max(f["Entry/Instrument/Positioner/SamX"][()]),
+                            ]
+                        )
+                        * ureg.micrometer
                     )
-                    * ureg.micrometer
-                )
+                else:
+                    FSamX = (
+                        np.array(
+                            [
+                                min(f["Entry/Instrument/Positioner/FSamX"][()]),
+                                max(f["Entry/Instrument/Positioner/FSamX"][()]),
+                            ]
+                        )
+                        * ureg.micrometer
+                    )
             else:
                 FSamX = None
-            if "Entry/Instrument/Positioner/FSamY" in f:
-                FSamY = (
-                    np.array(
-                        [
-                            min(f["Entry/Instrument/Positioner/FSamY"][()]),
-                            max(f["Entry/Instrument/Positioner/FSamY"][()]),
-                        ]
+
+            if ("Entry/Instrument/Positioner/FSamY" in f) or (
+                "Entry/Instrument/Positioner/SamY" in f
+            ):
+                if knifeedgescanflag:
+                    FSamY = (
+                        np.array(
+                            [
+                                min(f["Entry/Instrument/Positioner/SamY"][()]),
+                                max(f["Entry/Instrument/Positioner/SamY"][()]),
+                            ]
+                        )
+                        * ureg.micrometer
                     )
-                    * ureg.micrometer
-                )
+                else:
+                    FSamY = (
+                        np.array(
+                            [
+                                min(f["Entry/Instrument/Positioner/FSamY"][()]),
+                                max(f["Entry/Instrument/Positioner/FSamY"][()]),
+                            ]
+                        )
+                        * ureg.micrometer
+                    )
             else:
                 FSamY = None
-            if "Entry/Instrument/Positioner/FSamZ" in f:
-                FSamZ = (
-                    np.array(
-                        [
-                            min(f["Entry/Instrument/Positioner/FSamZ"][()]),
-                            max(f["Entry/Instrument/Positioner/FSamZ"][()]),
-                        ]
+
+            if ("Entry/Instrument/Positioner/FSamZ" in f) or (
+                "Entry/Instrument/Positioner/SamZ" in f
+            ):
+                if knifeedgescanflag:
+                    FSamZ = (
+                        np.array(
+                            [
+                                min(f["Entry/Instrument/Positioner/SamZ"][()]),
+                                max(f["Entry/Instrument/Positioner/SamZ"][()]),
+                            ]
+                        )
+                        * ureg.micrometer
                     )
-                    * ureg.micrometer
-                )
+                else:
+                    FSamZ = (
+                        np.array(
+                            [
+                                min(f["Entry/Instrument/Positioner/FSamZ"][()]),
+                                max(f["Entry/Instrument/Positioner/FSamZ"][()]),
+                            ]
+                        )
+                        * ureg.micrometer
+                    )
             else:
                 FSamZ = None
 
@@ -631,5 +709,4 @@ class SGM4NanoARPESLoader(
                 "keithleyB_Voltage": KB_V,
                 "keithleyB_Resistance": KB_R,
             }
-
         return metadata

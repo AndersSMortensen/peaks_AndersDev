@@ -211,7 +211,7 @@ class IdentifyLoc:
         with h5py.File(fname, "r", swmr=True) as h5file:
             if "/Entry/Facility" in h5file:
                 # In newer(2026 onwards) SGM4 files, the facility identifier is specified.
-                if h5file["/Entry/Data/ScanDetails/"] == "SGM4":
+                if h5file["/Entry/Facility"][()].decode() == "SGM4":
                     return "SGM4"
             elif "/Entry/Data/ScanDetails/" in h5file:
                 # For legacy compatibility, we rely on the end-station specific file structure.

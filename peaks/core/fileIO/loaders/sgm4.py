@@ -93,7 +93,6 @@ class SGM4NanoARPESLoader(
     _analyser_name_conventions = {
         "deflector_perp": "ShiftX",
         "deflector_parallel": "ShiftY",
-        # "eV": ["energies", "kinetic_energy_center"],
         "theta_par": "ordinate_range",
         "hv": "hv",
     }
@@ -120,7 +119,7 @@ class SGM4NanoARPESLoader(
 
     @classmethod
     def _parse_sgm4Keithley_metadata(cls, metadata_dict):
-        """Parse SGM4 specific temperature metadata from metedata dictionary."""
+        """Metadata model specific to the SGM4 endstation. It refers to the external Keithley power supplies."""
         keithley_metadata = SGM4KeithleyMetadataModel(
             KA_I=metadata_dict.get("keithleyA_Current"),
             KA_V=metadata_dict.get("keithleyA_Voltage"),
@@ -698,10 +697,10 @@ class SGM4NanoARPESLoader(
                 "optics_x1": CapX,
                 "optics_x2": CapY,
                 "optics_x3": CapZ,
-                "temperature_ColdHead": ColdHead,
-                "temperature_HeaterPower": HeaterPower,
-                "temperature_SampleStage": SampleStage,
-                "temperature_Stinger": Stinger,
+                "temperature_cryostat": ColdHead,
+                "temperature_heater_power": HeaterPower,
+                "temperature_sample": SampleStage,
+                "temperature_precooling_stage": Stinger,
                 "keithleyA_Current": KA_I,
                 "keithleyA_Voltage": KA_V,
                 "keithleyA_Resistance": KA_R,

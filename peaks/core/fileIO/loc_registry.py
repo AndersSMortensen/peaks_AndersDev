@@ -212,10 +212,10 @@ class IdentifyLoc:
             if "/Entry/Facility" in h5file:
                 # In newer(2026 onwards) SGM4 files, the facility identifier is specified.
                 if h5file["/Entry/Facility"][()].decode() == "SGM4":
-                    return "SGM4"
+                    return "ASTRID2_SGM4"
             elif "/Entry/Data/ScanDetails/" in h5file:
                 # For legacy compatibility, we rely on the end-station specific file structure.
-                return "SGM4"
+                return "ASTRID2_SGM4"
             else:
                 # Use CLF_Artemis loader which will in turn call the FeSuMa loader for the key things
                 return "CLF_Artemis"

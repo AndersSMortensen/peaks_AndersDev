@@ -3,8 +3,6 @@ from typing import Optional, Union
 
 import h5py
 import numpy as np
-
-# import pint
 import pint_xarray
 import xarray as xr
 
@@ -13,8 +11,6 @@ from peaks.core.fileIO.base_arpes_data_classes.base_arpes_data_class import (
 )
 from peaks.core.fileIO.base_data_classes.base_hdf5_class import BaseHDF5DataLoader
 from peaks.core.fileIO.base_data_classes.base_optics_class import BaseOpticsDataLoader
-
-# from peaks.core.fileIO.base_data_classes.base_hdf5_class import BaseDataLoader
 from peaks.core.fileIO.loc_registry import register_loader
 from peaks.core.metadata.base_metadata_models import (
     BaseMetadataModel,
@@ -36,11 +32,8 @@ class SGM4KeithleyMetadataModel(BaseMetadataModel):
 
 
 @register_loader
-# class SGM4NanoARPESLoader(BaseHDF5DataLoader):
-class SGM4NanoARPESLoader(
-    BaseHDF5DataLoader, BaseARPESDataLoader, BaseOpticsDataLoader
-):  # ,
-    _loc_name = "SGM4"
+class SGM4NanoARPESLoader(BaseHDF5DataLoader, BaseARPESDataLoader, BaseOpticsDataLoader):
+    _loc_name = "ASTRID2_SGM4"
     _loc_description = (
         "SGM4 endstation at the ASTRID2 synchrotron at Aarhus University, Denmark."
     )
@@ -69,7 +62,7 @@ class SGM4NanoARPESLoader(
         "theta_par": ureg.deg,
         "deflector_perp": ureg.deg,
         "deflector_parallel": ureg.deg,
-        "Loop": ureg.count,
+        "scan_no": ureg.count,
         "hv": ureg.electron_volt,
     }
 
@@ -85,7 +78,6 @@ class SGM4NanoARPESLoader(
     }
 
     _manipulator_sign_conventions = {
-        # HR-branch
         "polar": +1,
         "tilt": -1,
     }
@@ -104,7 +96,6 @@ class SGM4NanoARPESLoader(
     }
 
     _analyser_sign_conventions = {
-        # HR-branch
         "polar": -1,
     }
 
@@ -131,8 +122,7 @@ class SGM4NanoARPESLoader(
         return {"_keithley": keithley_metadata}, None
 
     @classmethod
-    # def _load_data(cls, fpath, lazy, **kwargs):
-    def _load_data(cls, fpath, metadata=False, Lazy=False, **kwargs):  # SumLoop=False,
+    def _load_data(cls, fpath, metadata=False, Lazy=False, **kwargs):
         with h5py.File(fpath, "r", swmr=True) as h5file:
             scandetails = h5file["/Entry/Data/ScanDetails/"]
             # Determine whether data is a knife-edge, or ordinary scan.
@@ -213,6 +203,9 @@ class SGM4NanoARPESLoader(
                     cls._analyser_name_conventions["hv"] = "MEG"
                 elif "HEG" in dimnames:
                     cls._analyser_name_conventions["hv"] = "HEG"
+                # Renaming Loop dimension:
+                if "Loop" in dimnames:
+                    dsetxr = dsetxr.rename({"Loop": "scan_no"})
                 dsetxr = dsetxr.rename(
                     {"Kinetic Energy": "eV", "OrdinateRange": "theta_par"}
                 )
@@ -250,10 +243,10 @@ class SGM4NanoARPESLoader(
                 # Correcting work function.
                 dsetxr.coords["eV"] = dsetxr.coords["eV"] - cls._analyser_WF.magnitude
 
-                # print(kwargs)
+                # Adding up scan_no/Loop dimension if specified.
                 if "SumLoop" in kwargs.keys():
                     if kwargs["SumLoop"]:
-                        dsetxr = dsetxr.sum("Loop")
+                        dsetxr = dsetxr.sum("scan_no")
 
             else:
                 # Change name conventions temporarily.
@@ -327,7 +320,7 @@ class SGM4NanoARPESLoader(
     @classmethod
     def _load_metadata(cls, fpath):
         with h5py.File(fpath, "r") as f:
-            # Necessary to destinguish knifeedge and ordinary scans.
+            # Necessary to distinguish knifeedge and ordinary scans.
             scandetails = f["/Entry/Data/ScanDetails/"]
             knifeedgescanflag = "FastAxis_start" not in list(scandetails.keys())
             if knifeedgescanflag:
@@ -361,7 +354,11 @@ class SGM4NanoARPESLoader(
                 infolist = infostring.split("\r\n")
                 Ekinstart = float(infolist[0].replace("Kinetic Start Energy: ", ""))
                 Ekinstop = float(infolist[1].replace("Kinetic End Energy: ", ""))
-                Ekin = (Ekinstart + Ekinstop) / 2 * ureg.eV
+                # If the scan is a sweep scan, save start and stop Ekin, else save the center Ekin.
+                if "FAT" in f["Entry/Data/Command"][()].decode().split(" "):
+                    Ekin = np.array([Ekinstart, Ekinstop]) * ureg.eV
+                else:
+                    Ekin = (Ekinstart + Ekinstop) / 2 * ureg.eV
                 Sweeps = int(infolist[2].replace("Samples: ", ""))
                 Estep = float(infolist[3].replace("Step Width: ", "")) * ureg.eV
                 Epass = float(infolist[4].replace("Pass Energy: ", "")) * ureg.eV
@@ -376,7 +373,7 @@ class SGM4NanoARPESLoader(
                 Tdwell = None
                 LensMode = None
 
-            ##Decode slow axis entry for deflector scan values:
+            # Decode slow axis entry for deflector scan values:
             if "/Entry/Data/ScanDetails/SlowAxis_names" in f:
                 Slownames = f["/Entry/Data/ScanDetails/SlowAxis_names"][()]
                 # Account for legacy names
@@ -411,10 +408,14 @@ class SGM4NanoARPESLoader(
                 else:
                     ShiftX = 0
                     ShiftY = 0
-                    # Warning("No metadata is available for analyser deflector settings. This is not expected, if you are trying to load a Fermi surface map.")
             else:
                 ShiftX = None
                 ShiftY = None
+
+            # Get time stamp:
+            if "Entry/Data/Timestamp" in f:
+                timestamp = f["Entry/Data/Timestamp"][()][0].decode()
+
             # Get Analyser angles:
             if "/Entry/Instrument/Detector/AnaAzi" in f:
                 AnaAzi = np.mean(f["/Entry/Instrument/Detector/AnaAzi"][()]) * ureg.deg
@@ -436,16 +437,14 @@ class SGM4NanoARPESLoader(
             # Get SamPolar/Tilt/Azi:
             if "Entry/Instrument/Positioner/SamPolar" in f:
                 SamPolar = (
-                    (np.mean(f["Entry/Instrument/Positioner/SamPolar"][()]) / 1000)
-                    * ureg.deg
-                    - cls._smpolaroffset
-                )  # np.array([min(f["Entry/Instrument/Positioner/SamPolar"][()]),max(f["Entry/Instrument/Positioner/SamPolar"][()])])*ureg.deg
+                    np.mean(f["Entry/Instrument/Positioner/SamPolar"][()]) / 1000
+                ) * ureg.deg - cls._smpolaroffset
             else:
                 SamPolar = None
             if "Entry/Instrument/Positioner/SamTilt" in f:
                 SamTilt = (
                     np.mean(f["Entry/Instrument/Positioner/SamTilt"][()]) * ureg.deg
-                )  # np.array([min(f["Entry/Instrument/Positioner/SamTilt"][()]),max(f["Entry/Instrument/Positioner/SamTilt"][()])])*ureg.deg
+                )
             else:
                 SamTilt = None
             if "Entry/Instrument/Positioner/SamAzi" in f:
@@ -453,7 +452,7 @@ class SGM4NanoARPESLoader(
                     np.mean(f["Entry/Instrument/Positioner/SamAzi"][()])
                     / 1000
                     * ureg.deg
-                )  # np.array([min(f["Entry/Instrument/Positioner/SamAzi"][()]),max(f["Entry/Instrument/Positioner/SamAzi"][()])])*ureg.deg
+                )
             else:
                 SamAzi = None
 
@@ -576,11 +575,11 @@ class SGM4NanoARPESLoader(
                 )
             else:
                 CapY = None
-            if "Entry/Instrument/Positioner/CapY" in f:
+            if "Entry/Instrument/Positioner/CapZ" in f:
                 # Might be a bit confusing, that this entry will also be a single value, for focus scans.
                 # In that case though, the scanned range will be stored under manipulator defocus.
                 CapZ = (
-                    np.mean(f["Entry/Instrument/Positioner/CapY"][()]) * ureg.micrometer
+                    np.mean(f["Entry/Instrument/Positioner/CapZ"][()]) * ureg.micrometer
                 )
             else:
                 CapZ = None
@@ -670,6 +669,7 @@ class SGM4NanoARPESLoader(
                 KB_R = None
 
             metadata = {
+                "timestamp": timestamp,
                 "scan_command": ScanCommand,
                 "manipulator_polar": SamPolar,
                 "manipulator_tilt": SamTilt,

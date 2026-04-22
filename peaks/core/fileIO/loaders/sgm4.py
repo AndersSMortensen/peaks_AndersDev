@@ -627,22 +627,25 @@ class SGM4NanoARPESLoader(BaseHDF5DataLoader, BaseARPESDataLoader, BaseOpticsDat
                     KA_I = None
             else:
                 KA_I = None
-            if "/Entry/Instrument/Device/KeithleyA_Resistance" in f:
-                val = f["/Entry/Instrument/Device/KeithleyA_Resistance"]
+
+            if "/Entry/Instrument/Device/KeithleyA_Voltage" in f:
+                val = f["/Entry/Instrument/Device/KeithleyA_Voltage"]
                 if val.size > 0:
                     KA_V = np.mean(val)
                 else:
                     KA_V = None
             else:
                 KA_V = None
-            if "/Entry/Instrument/Device/KeithleyA_Voltage" in f:
-                val = f["/Entry/Instrument/Device/KeithleyA_Voltage"]
+
+            if "/Entry/Instrument/Device/KeithleyA_Resistance" in f:
+                val = f["/Entry/Instrument/Device/KeithleyA_Resistance"]
                 if val.size > 0:
                     KA_R = np.mean(val)
                 else:
                     KA_R = None
             else:
                 KA_R = None
+
             if "/Entry/Instrument/Device/KeithleyB_Current" in f:
                 val = f["/Entry/Instrument/Device/KeithleyB_Current"]
                 if val.size > 0:
@@ -651,16 +654,18 @@ class SGM4NanoARPESLoader(BaseHDF5DataLoader, BaseARPESDataLoader, BaseOpticsDat
                     KB_I = None
             else:
                 KB_I = None
-            if "/Entry/Instrument/Device/KeithleyB_Resistance" in f:
-                val = f["/Entry/Instrument/Device/KeithleyB_Resistance"]
+
+            if "/Entry/Instrument/Device/KeithleyB_Voltage" in f:
+                val = f["/Entry/Instrument/Device/KeithleyB_Voltage"]
                 if val.size > 0:
                     KB_V = np.mean(val)
                 else:
                     KB_V = None
             else:
                 KB_V = None
-            if "/Entry/Instrument/Device/KeithleyB_Voltage" in f:
-                val = f["/Entry/Instrument/Device/KeithleyB_Voltage"]
+
+            if "/Entry/Instrument/Device/KeithleyB_Resistance" in f:
+                val = f["/Entry/Instrument/Device/KeithleyB_Resistance"]
                 if val.size > 0:
                     KB_R = np.mean(val)
                 else:
